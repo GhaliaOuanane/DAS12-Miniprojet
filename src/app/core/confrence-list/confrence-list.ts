@@ -1,15 +1,29 @@
-import { Component } from '@angular/core';
+
+import { Component, signal } from '@angular/core';
 import { Conference } from '../../Models/conference';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
+import { Card } from '../card/card';
 
 @Component({
   selector: 'app-confrence-list',
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule,Card],
   templateUrl: './confrence-list.html',
   styleUrl: './confrence-list.css',
 })
 export class ConfrenceList {
-  confList: Conference[] = [
+
+  // Signal de test
+  x = signal(0);
+
+  // Recherche
+  searchItem: string = '';
+
+  // Liste des favoris
+  favoritelist = signal<Conference[]>([]);
+
+  // Liste des conférences
+  confList = signal<Conference[]>([
     {
       id: 1,
       titre: 'Angular Workshop',
@@ -34,7 +48,6 @@ export class ConfrenceList {
       category: 'Musique',
       nbLikes: 12,
     },
-
     {
       id: 3,
       titre: 'AI & Innovation Conference',
@@ -43,11 +56,10 @@ export class ConfrenceList {
       lieu: 'Hammamet',
       prix: 100,
       imageUrl: 'images/conf.jpg',
-      nbPlaces:0,
+      nbPlaces: 0,
       category: 'Technologie',
       nbLikes: 0,
     },
-
     {
       id: 4,
       titre: 'Startup Meetup',
@@ -60,5 +72,55 @@ export class ConfrenceList {
       category: 'Business',
       nbLikes: 0,
     },
-  ];
+  ]);
+
+  constructor() {
+    console.log(this.x());
+    this.x.set(3);
+    console.log(this.x());
+  }
+
+  // Ajouter aux favoris
+  addFavorite(conf: Conference) {
+
+    if (this.favoritelist().find(c => c.id === conf.id)) {
+      alert('Cette conférence existe déjà dans les favoris !');
+    } else {
+      this.favoritelist.update(list => [...list, conf]);
+      alert('Conférence ajoutée aux favoris !');
+    }
+
+  }
+
+  // Ajouter un Like
+  liker(conf: Conference) {
+
+    this.confList.update(list =>
+      list.map(c =>
+        c.id === conf.id
+          ? { ...c, nbLikes: c.nbLikes + 1 }
+          : c
+      )
+    );
+
+  }
+
+  // Recherche
+  filter(): Conference[] {
+
+    return this.confList().filter(conf =>
+      conf.titre.toLowerCase().includes(this.searchItem.toLowerCase())
+    );
+
+  }
+
+  // Supprimer un favori
+  removeFavorite(id: number) {
+
+    this.favoritelist.update(list =>
+      list.filter(conf => conf.id !== id)
+    );
+
+  }
+
 }
